@@ -36,6 +36,9 @@ def isItOnOrOff(number):
     else:
         return "ON"  
 
+def returnValue(value):
+    return value
+
 # Main program
 # Load devices
 Stacks = loadDevices()
@@ -58,13 +61,19 @@ if len(sys.argv) > 1 and str(sys.argv[1]) == 'test':
             time.sleep(0.1)
             relayctl.switchoff(dev, i)
 
-# Displays status of all relays
+# Displays status of all relays or a particular one
 if len(sys.argv) > 1 and str(sys.argv[1]) == 'status':
-    print Stacks
-    for d in range(Stacks):
-        dev = devs[d]
-        for i in range(1, 9):
-            print("Channel "+str(i)+" on device " + str(d) + " is "+isItOnOrOff(relayctl.getstatus(dev, i)))
+    if len(sys.argv) > 2:
+	channel = int(sys.argv[2])
+	dev = devs[(channel-1)//8]
+	relay = (channel-1)%8 + 1
+	print ("Channel " + str(channel) + " is " + isItOnOrOff(relayctl.getstatus(dev, relay)))
+        returnValue(relayctl.getstatus(dev, relay))
+    else:
+    	for d in range(Stacks):
+            dev = devs[d]
+            for i in range(1, 9):
+            	print("Channel "+str(i)+" on device " + str(d) + " is "+isItOnOrOff(relayctl.getstatus(dev, i)))
 
 
 if len(sys.argv) > 1 and str(sys.argv[1]) == 'on':
@@ -81,22 +90,14 @@ if len(sys.argv) > 1 and str(sys.argv[1]) == 'off':
         relay = (channel-1)%8 + 1
         relayctl.switchoff(dev, relay)
 
-# Untested but should work
-#if len(sys.argv) > 1 and str(sys.argv[1]) == 'check':
-#    if int(sys.argv[2]) > 0 and int(sys.argv[2]) < 25:
-#        channel = int(sys.argv[2])
-#        dev = devs[(channel-1)//8]
-#        relay = (channel-1)%8 + 1
-#        check = relayctl.getstatus(dev, relay)
-#        print check
-#        return check
-
 if len(sys.argv) == 1:
     print("Examples:")
     print("sudo python usbrelstack.py list")
     print("        This command will list all available USB relays")
     print("sudo python usbrelstack.py status")
     print("        This command will show status of relays")
+    print("sudo python usbrelstack.py status 2")
+    print("	   This command will show the status of relay 2 and also return 1/0")
     print("sudo python usbrelstack.py test")
     print("        This command will turn ON relay relays starting from 1 sequentially to 24")
     print("sudo python usbrelstack.py on 1")
