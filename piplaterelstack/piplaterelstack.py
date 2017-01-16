@@ -10,19 +10,16 @@
 # download and install: sudo apt-get install python-spidev
 
 # This routine performs the same function as usbrelstack.py but with pi-plates based relays
-# Controls 2 pi plates, so 14 channels in total
+# Controls 2 pi plates, so 14 channels in total (works only with 7 relay plates)
 
 # top plate is Address 7, bottom plate is address 6
-
-# IMPROVE BY making an array of all addresses and insert into loops below. Now it will only work with 7 and 6
 
 import sys
 import time
 import piplates.RELAYplate as RELAY
 
-# Defines address for Pi-Plates
-TopPlate = 7
-BottomPlate = 6
+# Defines address for Pi-Plates, start with the address of the top plate and then go down
+plateAddress = [7,6]
 
 def returnValue(value):
     return value
@@ -31,7 +28,7 @@ def returnValue(value):
 if len(sys.argv) > 1 and str(sys.argv[1]) == 'on':
     if int(sys.argv[2]) > 0 and int(sys.argv[2]) < 15:
         channel = int(sys.argv[2])
-        address = 7-(channel-1)//7
+        address = plateAddress((channel-1)//7)
         relay = (channel-1)%7 + 1
         RELAY.relayON(address, relay)
 
@@ -39,7 +36,7 @@ if len(sys.argv) > 1 and str(sys.argv[1]) == 'on':
 if len(sys.argv) > 1 and str(sys.argv[1]) == 'off':
     if int(sys.argv[2]) > 0 and int(sys.argv[2]) < 15:
         channel = int(sys.argv[2])
-        address = 7-(channel-1)//7
+        address = plateAddress((channel-1)//7)
         relay = (channel-1)%7 + 1
         RELAY.relayOFF(address, relay)
 
@@ -47,7 +44,7 @@ if len(sys.argv) > 1 and str(sys.argv[1]) == 'off':
 if len(sys.argv) > 1 and str(sys.argv[1]) == 'status':
     if len(sys.argv) > 2:
         channel = int(sys.argv[2])
-        address = 7-(channel-1)//7
+        address = plateAddress((channel-1)//7)
         relay = (channel-1)%7 + 1
         mask = 1
         mask = mask << (relay-1)
@@ -60,7 +57,7 @@ if len(sys.argv) > 1 and str(sys.argv[1]) == 'status':
             returnValue(0)
     else:
         rr = 0
-        for ad in range(7,5,-1):
+        for ad in plateAddress:
             mask = 1
             rstate = RELAY.relaySTATE(ad)
             for i in range(7):
@@ -74,7 +71,7 @@ if len(sys.argv) > 1 and str(sys.argv[1]) == 'status':
 # Tests order of relays and switches all off
 if len(sys.argv) > 1 and str(sys.argv[1]) == 'test':
     print("Testing 1 through 24")
-    for ad in range(7, 5, -1):
+    for ad in plateAddress:
         for i in range(6):
             RELAY.relayON(ad, i + 1)
             time.sleep(0.1)
